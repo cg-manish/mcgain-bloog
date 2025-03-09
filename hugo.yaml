@@ -145,13 +145,9 @@ params:
   homeInfoParams:
     Title: "Manish's Chit chat"
     Content: >
-        You might be wondering why this page is so empty.
-
-        I will be posting very soon about AWS, Azure, Kubernetes and bunch of other that I learn here and there.
+        Building awesome budgeting app. 
         <br/>
-        <br/>
-        I am currently **DevOps/CloudOps/DevSe*Ops engineer** (adding ops tp everything is getting so ridiculous 🥱). 
-        <br/>
+        Stay Tuned !
         <br/>
 
         Stay tuned!
