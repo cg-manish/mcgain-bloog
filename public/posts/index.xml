@@ -17,9 +17,6 @@
 I have been there and so have you. Let&amp;rsquo;s create a 3-node Kubernetes cluster for free in Oracle Cloud.&lt;/p&gt;
 &lt;h2 id=&#34;table-of-contents&#34;&gt;Table of Contents&lt;/h2&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#creating-a-free-kubernetes-cluster-on-oracle-cloud&#34;&gt;Creating a Free Kubernetes Cluster on Oracle Cloud&lt;/a&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;#table-of-contents&#34;&gt;Table of Contents&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#TLDR&#34;&gt;TLDR&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#Disclaimer&#34;&gt;Disclaimer&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#setting-up-oracle-cloud&#34;&gt;Setting Up Oracle Cloud&lt;/a&gt;&lt;/li&gt;
@@ -36,17 +33,8 @@ I have been there and so have you. Let&amp;rsquo;s create a 3-node Kubernetes cl
 &lt;li&gt;&lt;a href=&#34;#tear-down-the-cluster&#34;&gt;Tear Down the Cluster&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#whats-next&#34;&gt;What&amp;rsquo;s Next&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
 &lt;h2 id=&#34;tldr&#34;&gt;TLDR:&lt;/h2&gt;
 &lt;p&gt;Create 3 Oracle Cloud virtual machines with ARM Ampere CPU. The always free tier covers 3,000 OCPU hours and 18,000 GB hours per month, essentially 4 vCPU and 24GB RAM running 24 hours for a month.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>My First Post</title>
-      <link>http://localhost:1313/posts/my-first-post/</link>
-      <pubDate>Tue, 22 Apr 2025 00:37:23 -0500</pubDate>
-      <guid>http://localhost:1313/posts/my-first-post/</guid>
-      <description>&lt;h2 id=&#34;intro&#34;&gt;Intro&lt;/h2&gt;</description>
     </item>
   </channel>
 </rss>

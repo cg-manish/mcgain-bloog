@@ -8,8 +8,6 @@ Learning Kubernetes for the first time or creating your own lab for practicing C
 I have been there and so have you. Let's create a 3-node Kubernetes cluster for free in Oracle Cloud.
 
 ## Table of Contents
-- [Creating a Free Kubernetes Cluster on Oracle Cloud](#creating-a-free-kubernetes-cluster-on-oracle-cloud)
-  - [Table of Contents](#table-of-contents)
   - [TLDR](#TLDR)
   - [Disclaimer](#Disclaimer)
   - [Setting Up Oracle Cloud](#setting-up-oracle-cloud)
@@ -48,16 +46,19 @@ https://www.oracle.com/cloud/free/
 
 ### Create Oracle Cloud Account
 
-- Create an Oracle Cloud account. You can create a free tier account but you are not likely to get the VMs due to out-of-capacity errors. With Pay as you go, you get the VMs instantly.
-![image](https://hackmd.io/_uploadsd 
-Still like to remain in the free tier, check out this repo https://github.com/hitrov/oci-arm-host-capacity where they have scripts which try to provision VMs.
+- Create an Oracle Cloud account. You can create a free tier Oracle cloud account but you are not likely to get any VMs because of out of capacity errors for free teir users. With Pay as you go, VMs are created instantly.
+![image](images/create-account.png)
+
+If you still like to remain in the free tier, check out this repo https://github.com/hitrov/oci-arm-host-capacity where they have scripts which try to provision VMs periodically. 
+
 
 ## Budgeting and Alerts
 
-Before you create any resources in the cloud, it is extremely important to set your budgets and create alerts if you surpass them. Mistakes can be extremely costly while using the cloud, especially when you enter your credit card details.
+Before you create any resources in the cloud, it is extremely important to set your budgets and create alerts especially when you don't know what you are doing in the cloud.  Mistakes can be extremely costly while using the cloud, especially when you enter your credit card details.
 
 1. Setup Budget alert. Set a threshold of $1 or even $0.00 so that once the cost is higher than that budget, you receive a notification.
 2. Once you are done playing with the cluster for the day, stop the VMs so you do not consume compute resources.
+3. If you delete the VMs make sure you aldo delete the volumes.
 
 https://docs.oracle.com/en-us/iaas/Content/Billing/Tasks/create-alert-rule.htm
 
@@ -73,21 +74,24 @@ We can create a virtual network with a custom CIDR in Oracle Cloud. If you are c
 2. Internet Gateway: Entry point to the network in the cloud
 3. Subnets: Division of networks into smaller sizes to run different workloads
 4. Route Table: Create routes between internet gateway, NATs, and local networks
-5. NAT gateway: NAT is NAT. Please go ahead and google it. NAT gateways are free in Oracle, looking at you AWS
+5. NAT gateway: NAT is NAT. Please go ahead and google it. NAT gateways are free in Oracle, looking at you AWS 👀
 6. Service Gateway: Connects Oracle Cloud services internally so that traffic does not need to route over the public internet
 7. Security Lists: NACL in cloud
 8. Network security group: Virtualized firewall outside the VMs or other services
 
-There are a few ways to create a network and its related components:
+There are a different ways to create a network and its related components:
 
 1. Create each component of the network separately
 2. Use VCN wizard to create all components swiftly
 3. Don't create a network initially. Create a new network while creating a virtual instance. The console has an option to create a new VCN
 
-![image](https://hackmd.io/_uploads/k with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks.
+![image](images/vcn-wizard.png)
+
+with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks.
 
 While creating a VCN with the wizard, choose the option to create a VCN with internet connectivity.
-![image](https://hackmd.io/_uploadsd, you can explore the subnets, gateways, route tables, and security lists.
+
+![image](images/start-vcn-wizard.png), you can explore the subnets, gateways, route tables, and security lists.
 
 ### Compute Instances
 
@@ -104,7 +108,9 @@ Virtual machine configuration:
 - Image: Oracle Linux (based on CentOS) or choose Ubuntu
 - Shape (Important): First choose **ARM** for shape series. Then choose shape to **VM.Standard.A1.Flex**. For the master node, choose OCPU value as 2 and Memory as 12 GB. For worker nodes, 1 OCPU and 6 GB. Double check the shape and note the `Always Free-eligible` badge when selecting the shape series. If you do not choose this series, you will burn money.
 
-![image](https://hackcript: We can add a bash script to bootstrap the VM before we can access it. For now, we will not use it and manually run our init scripts.
+![image](images/select-shape.png)
+
+We can add a bash script to bootstrap the VM before we can access it. For now, we will not use it and manually run our init scripts.
 - Tags: Add helpful tags to document the workload.
 - Networking:
   - Virtual network: In the networking section, choose the virtual network we created earlier from the dropdown or create a new network if you have not created a VCN yet or did not want to create beforehand.
@@ -158,22 +164,45 @@ Go to Oracle Cloud network's default security list and add the rules to allow in
 
 In VCN's menu, go to security > security list. Choose the default security list and then add ingress rules.
 Add an ingress rule to allow ports 80 and 443 for HTTP traffic.
-![image](https://hackmd.io/_uploads 6443 for accessing the kube api server with kubectl.
-![image](https://hackmd.io/_uploads/H250 (for kubelet API) and for worker nodes' usage add 10256 (kube-proxy) and 30000-32767 (for NodePort service).
+![image](images/add-ingress-rule.png)
+ 6443 for accessing the kube api server with kubectl.
+![image](images/ingress-rule-6443.png)
+(for kubelet API) and for worker nodes' usage add 10256 (kube-proxy) and 30000-32767 (for NodePort service).
 
 More information on ports here: https://kubernetes.io/docs/reference/networking/ports-and-protocols/
 
-When Oracle Linux is used, it automatically allows SSH port with the iptables rule it has configured. But any other traffic will be blocked even after opening ports through security list or network security group and firewall in the OS (UFW in Ubuntu and firewalld in Oracle Linux) itself. I had to learn the hard way after turning on and off all the security features within the VCN.
+When Oracle Linux is used, use firewall-cmd to open the ports:
 
-For Ubuntu, Oracle Cloud recommends that we do not use UFW for managing the traffic because it alters the pre-configured IP table rules.
+```bash
+sudo firewall-cmd --permanent --zone=public --add-port=80/tcp; 
+sudo firewall-cmd --permanent --zone=public --add-port=443/tcp; 
+sudo firewall-cmd --permanent --zone=public --add-port=6443/tcp; 
+sudo firewall-cmd --permanent --zone=public --add-port=10250/tcp; 
+
+sudo firewall-cmd --reload
+
+```
+
+In case of Ubuntu, oracle cloud recommends not to use UFW because it alters pre-configured rules but instead use `iptables` directly to open ports. In Ubuntu iptables is pre configured to allow Oracle's internal IP addresses and SSH port. Even if we allow other ports from security lists or network security groups, those ports will not be accessible unless we add the iptables rules. 
+
 https://docs.oracle.com/en-us/iaas/Content/Compute/known-issues.htm#ufw
 
 After SSHing to all three nodes, we need to update the iptables rules in Oracle Linux to allow the ports 6443, 10250, 10256, 80, and 443.
 
+
+
+
 ```
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 6443 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 10250 -j ACCEPT
+
 sudo netfilter-persistent save
 ```
+
+> NOTE: If we could need access to other ports if we use NodePort service in our cluster to expose the apps running in the cluster. The NodePort's port range 30000 to 32767 might be needed to added in the iptables rules or firewall-cmd depending on the Linux distro.
 
 ## Kubernetes Setup
 
@@ -241,10 +270,12 @@ Check the firewall status. In Ubuntu, check ufw; in Oracle Linux, check firewall
 
 ```bash
 # ubuntu
-sudo ufw status
+sudo ufw status # should be disabled or not installed
 
 # oracle linux
-sudo firewall-cmd status
+sudo firewall-cmd --state
+sudo firewall-cmd --list-all  # should show the open ports 80, 443, 6443, 10250
+
 ```
 
 ## Initialize the Cluster
@@ -263,10 +294,15 @@ sudo kubeadm init --apiserver-advertise-address $CONTROL_PLANE_PRIVATE_IP \
 --apiserver-cert-extra-sans "public_ip_of_master_node" \
 --upload-certs --v=5
 ```
+`apiserver-advertise-address` should be the private IP address of the master node. To make the kube api server accessible from public internet `apiserver-cert-extra-sans` should be set to a public IP address 
 
-We are using `--apiserver-advertise-address` because we are creating the cluster in a public subnet and the VM has a public IP address. With the usage of this flag, we can use kubectl to access the cluster from anywhere without having to use a bastion host or a VPN.
 
-It will take 3-4 minutes for the cluster to be created. If it succeeds, the stdout will provide a token that can be used to join the cluster. Copy the kubectl join command along with the token from the stdout.
+It will take 3-4 minutes for the cluster to be created. If it succeeds, the stdout will provide a token that can be used to join the cluster. Copy the kubectl join command along with the token from the stdout. The join command looks something similar to this:
+```
+kubeadm join 10.0.0.23:6443 --token 54o3tf.age34 \
+        --discovery-token-ca-cert-hash sha256:97caa855c032d964b8b2e9c23cf495b0d208fd2ae38d7eawf342
+       
+```
 
 The Kubernetes config, aka kubeconfig, is stored at /etc/kubernetes/admin.conf. Copy it to the home directory as:
 
@@ -298,7 +334,30 @@ kubectl run nginx --name nginx
 
 Run `kubectl get pods`, and it should show nginx running.
 
-Access the running nginx pod by creating a NodePort type Service and access the cluster.
+
+To access the cluster from your own machine , copy the ~/.kube/config file to your own own file and edit the server's IP address in the config file:
+```
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: example-text
+    server: https://your server's ip address's public ip address:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: example-text
+    client-key-data: example-text
+```
+
 
 ## Tear Down the Cluster
 
