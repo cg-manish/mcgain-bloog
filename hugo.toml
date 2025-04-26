@@ -1,4 +1,4 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://macgain.net'
 languageCode = 'en-us'
 title = 'Manish'
 theme = 'hugo-PaperMod'
