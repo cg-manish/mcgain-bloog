@@ -172,16 +172,16 @@ I have been there and so have you. Let&rsquo;s create a 3-node Kubernetes cluste
 <a href="https://www.oracle.com/cloud/free/">https://www.oracle.com/cloud/free/</a></p>
 <h3 id="create-oracle-cloud-account">Create Oracle Cloud Account<a hidden class="anchor" aria-hidden="true" href="#create-oracle-cloud-account">#</a></h3>
 <ul>
-<li>Create an Oracle Cloud account. You can create a free tier Oracle cloud account but you are not likely to get any VMs because of out of capacity errors for free teir users. With Pay as you go, VMs are created instantly.
+<li>Create an Oracle Cloud account. You can create a free tier Oracle cloud account but you are not likely to get any VMs because of out of capacity errors for free tier users. With Pay as you go, VMs are created instantly.
 <img alt="image" loading="lazy" src="/posts/free-k8-cluster/images/create-account.png"></li>
 </ul>
 <p>If you still like to remain in the free tier, check out this repo <a href="https://github.com/hitrov/oci-arm-host-capacity">https://github.com/hitrov/oci-arm-host-capacity</a> where they have scripts which try to provision VMs periodically.</p>
 <h2 id="budgeting-and-alerts">Budgeting and Alerts<a hidden class="anchor" aria-hidden="true" href="#budgeting-and-alerts">#</a></h2>
 <p>Before you create any resources in the cloud, it is extremely important to set your budgets and create alerts especially when you don&rsquo;t know what you are doing in the cloud.  Mistakes can be extremely costly while using the cloud, especially when you enter your credit card details.</p>
 <ol>
-<li>Setup Budget alert. Set a threshold of $1 or even $0.00 so that once the cost is higher than that budget, you receive a notification.</li>
+<li>Set up Budget alert. Set a threshold of $1 or even $0.00 so that once the cost is higher than that budget, you receive a notification.</li>
 <li>Once you are done playing with the cluster for the day, stop the VMs so you do not consume compute resources.</li>
-<li>If you delete the VMs make sure you aldo delete the volumes.</li>
+<li>If you delete the VMs make sure you also delete the volumes.</li>
 </ol>
 <p><a href="https://docs.oracle.com/en-us/iaas/Content/Billing/Tasks/create-alert-rule.htm">https://docs.oracle.com/en-us/iaas/Content/Billing/Tasks/create-alert-rule.htm</a></p>
 <h2 id="creating-the-infrastructure">Creating the Infrastructure<a hidden class="anchor" aria-hidden="true" href="#creating-the-infrastructure">#</a></h2>
@@ -193,21 +193,21 @@ I have been there and so have you. Let&rsquo;s create a 3-node Kubernetes cluste
 <li>Internet Gateway: Entry point to the network in the cloud</li>
 <li>Subnets: Division of networks into smaller sizes to run different workloads</li>
 <li>Route Table: Create routes between internet gateway, NATs, and local networks</li>
-<li>NAT gateway: NAT is NAT. Please go ahead and google it. NAT gateways are free in Oracle, looking at you AWS 👀</li>
+<li>NAT gateway: NAT is NAT. Please look up NAT if you are not aware of it. NAT gateways are free in Oracle, looking at you AWS 👀</li>
 <li>Service Gateway: Connects Oracle Cloud services internally so that traffic does not need to route over the public internet</li>
 <li>Security Lists: NACL in cloud</li>
 <li>Network security group: Virtualized firewall outside the VMs or other services</li>
 </ol>
-<p>There are a different ways to create a network and its related components:</p>
+<p>There are different ways to create  network and its related components:</p>
 <ol>
 <li>Create each component of the network separately</li>
 <li>Use VCN wizard to create all components swiftly</li>
 <li>Don&rsquo;t create a network initially. Create a new network while creating a virtual instance. The console has an option to create a new VCN</li>
 </ol>
 <p><img alt="image" loading="lazy" src="/posts/free-k8-cluster/images/vcn-wizard.png"></p>
-<p>with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks.</p>
-<p>While creating a VCN with the wizard, choose the option to create a VCN with internet connectivity.</p>
-<p><img alt="image" loading="lazy" src="/posts/free-k8-cluster/images/start-vcn-wizard.png">, you can explore the subnets, gateways, route tables, and security lists.</p>
+<p>Create the VCN with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks. While creating a VCN with the wizard, choose the option to create a VCN with internet connectivity.</p>
+<p><img alt="image" loading="lazy" src="/posts/free-k8-cluster/images/start-vcn-wizard.png"></p>
+<p>After creating the VCN with the wizard take a few minutes to explore all the details and the components of the VCN.</p>
 <h3 id="compute-instances">Compute Instances<a hidden class="anchor" aria-hidden="true" href="#compute-instances">#</a></h3>
 <p>We will be creating 3 VMs. Yes, we could create 4 VMs, but the Kubernetes control plane node requires at least 2 vCPUs. Our configuration will be:</p>
 <ul>
@@ -222,17 +222,17 @@ I have been there and so have you. Let&rsquo;s create a 3-node Kubernetes cluste
 <li>Placement: AD-1 (the physical data center of Oracle)</li>
 <li>Capacity type (Under advanced options): On demand</li>
 <li>Image: Oracle Linux (based on CentOS) or choose Ubuntu</li>
-<li>Shape (Important): First choose <strong>ARM</strong> for shape series. Then choose shape to <strong>VM.Standard.A1.Flex</strong>. For the master node, choose OCPU value as 2 and Memory as 12 GB. For worker nodes, 1 OCPU and 6 GB. Double check the shape and note the <code>Always Free-eligible</code> badge when selecting the shape series. If you do not choose this series, you will burn money.</li>
+<li>Shape (Important): First choose <strong>ARM</strong> for shape series. Then choose the shape  <strong>VM.Standard.A1.Flex</strong>. For the master node, choose OCPU value as 2 and Memory as 12 GB. For worker nodes, 1 OCPU and 6 GB. Double check the shape and note the <code>Always Free-eligible</code> badge when selecting the shape series. If you do not choose this series, you will burn money.</li>
 </ul>
 <p><img alt="image" loading="lazy" src="/posts/free-k8-cluster/images/select-shape.png"></p>
-<p>We can add a bash script to bootstrap the VM before we can access it. For now, we will not use it and manually run our init scripts.</p>
+<p>We can add a bash script to bootstrap the VM before we can access it. For now, we will skip it and manually run our init scripts.</p>
 <ul>
 <li>Tags: Add helpful tags to document the workload.</li>
 <li>Networking:
 <ul>
 <li>Virtual network: In the networking section, choose the virtual network we created earlier from the dropdown or create a new network if you have not created a VCN yet or did not want to create beforehand.</li>
-<li>Subnets: For subnet, choose the public subnet. It is not the best practice to run Kubernetes in a node with a public IP in a public subnet, but for testing and lab purposes, we will run it in a public subnet. In the next article, we will create the cluster entirely in a private subnet.</li>
-<li>Auto assign public IP: Yes</li>
+<li>Subnets: For the subnet, choose the <strong>public subnet</strong>. It is not the best practice to run Kubernetes in a node with a public IP in a public subnet, but for testing and lab purposes, we will run it in a public subnet. In the next article, we will create the cluster entirely in a private subnet.</li>
+<li>Auto-assign public IP: Yes</li>
 </ul>
 </li>
 <li>SSH keys: If you already have an SSH key pair, upload the public key. Otherwise, create an SSH key and download the key pair. Use the same key pair for all VMs for now.</li>
@@ -252,7 +252,7 @@ I have been there and so have you. Let&rsquo;s create a 3-node Kubernetes cluste
     HostName  your-vms-public-ip-address
     Port 22 # ssh port
     User ubuntu # or custom username
-    IdentityFile ~/Downloads/ORACLE/keys/oracle-cloud.key # path to your ssh private key file
+    IdentityFile ~/Downloads/ORACLE/keys/oracle-cloud.key # path to your SSH private key file
     PubkeyAuthentication yes
 </code></pre><p>After adding entries for all VMs, you can SSH by using just <code>ssh c1</code> or <code>ssh w1</code> or <code>ssh w2</code>.</p>
 <h3 id="oracle-linuxs-networking-gotchas">Oracle Linux&rsquo;s Networking Gotchas<a hidden class="anchor" aria-hidden="true" href="#oracle-linuxs-networking-gotchas">#</a></h3>

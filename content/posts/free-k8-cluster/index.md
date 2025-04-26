@@ -46,7 +46,7 @@ https://www.oracle.com/cloud/free/
 
 ### Create Oracle Cloud Account
 
-- Create an Oracle Cloud account. You can create a free tier Oracle cloud account but you are not likely to get any VMs because of out of capacity errors for free teir users. With Pay as you go, VMs are created instantly.
+- Create an Oracle Cloud account. You can create a free tier Oracle cloud account but you are not likely to get any VMs because of out of capacity errors for free tier users. With Pay as you go, VMs are created instantly.
 ![image](images/create-account.png)
 
 If you still like to remain in the free tier, check out this repo https://github.com/hitrov/oci-arm-host-capacity where they have scripts which try to provision VMs periodically. 
@@ -56,9 +56,9 @@ If you still like to remain in the free tier, check out this repo https://github
 
 Before you create any resources in the cloud, it is extremely important to set your budgets and create alerts especially when you don't know what you are doing in the cloud.  Mistakes can be extremely costly while using the cloud, especially when you enter your credit card details.
 
-1. Setup Budget alert. Set a threshold of $1 or even $0.00 so that once the cost is higher than that budget, you receive a notification.
+1. Set up Budget alert. Set a threshold of $1 or even $0.00 so that once the cost is higher than that budget, you receive a notification.
 2. Once you are done playing with the cluster for the day, stop the VMs so you do not consume compute resources.
-3. If you delete the VMs make sure you aldo delete the volumes.
+3. If you delete the VMs make sure you also delete the volumes.
 
 https://docs.oracle.com/en-us/iaas/Content/Billing/Tasks/create-alert-rule.htm
 
@@ -74,12 +74,12 @@ We can create a virtual network with a custom CIDR in Oracle Cloud. If you are c
 2. Internet Gateway: Entry point to the network in the cloud
 3. Subnets: Division of networks into smaller sizes to run different workloads
 4. Route Table: Create routes between internet gateway, NATs, and local networks
-5. NAT gateway: NAT is NAT. Please go ahead and google it. NAT gateways are free in Oracle, looking at you AWS 👀
+5. NAT gateway: NAT is NAT. Please look up NAT if you are not aware of it. NAT gateways are free in Oracle, looking at you AWS 👀
 6. Service Gateway: Connects Oracle Cloud services internally so that traffic does not need to route over the public internet
 7. Security Lists: NACL in cloud
 8. Network security group: Virtualized firewall outside the VMs or other services
 
-There are a different ways to create a network and its related components:
+There are different ways to create  network and its related components:
 
 1. Create each component of the network separately
 2. Use VCN wizard to create all components swiftly
@@ -87,11 +87,12 @@ There are a different ways to create a network and its related components:
 
 ![image](images/vcn-wizard.png)
 
-with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks.
+Create the VCN with a VCN wizard if you are not aware of all the moving pieces of Oracle Cloud networking. In the future, we will create separate terraform configuration for compute instances and virtual networks. While creating a VCN with the wizard, choose the option to create a VCN with internet connectivity.
 
-While creating a VCN with the wizard, choose the option to create a VCN with internet connectivity.
+![image](images/start-vcn-wizard.png)
 
-![image](images/start-vcn-wizard.png), you can explore the subnets, gateways, route tables, and security lists.
+
+After creating the VCN with the wizard take a few minutes to explore all the details and the components of the VCN.
 
 ### Compute Instances
 
@@ -106,16 +107,16 @@ Virtual machine configuration:
 - Placement: AD-1 (the physical data center of Oracle)
 - Capacity type (Under advanced options): On demand
 - Image: Oracle Linux (based on CentOS) or choose Ubuntu
-- Shape (Important): First choose **ARM** for shape series. Then choose shape to **VM.Standard.A1.Flex**. For the master node, choose OCPU value as 2 and Memory as 12 GB. For worker nodes, 1 OCPU and 6 GB. Double check the shape and note the `Always Free-eligible` badge when selecting the shape series. If you do not choose this series, you will burn money.
+- Shape (Important): First choose **ARM** for shape series. Then choose the shape  **VM.Standard.A1.Flex**. For the master node, choose OCPU value as 2 and Memory as 12 GB. For worker nodes, 1 OCPU and 6 GB. Double check the shape and note the `Always Free-eligible` badge when selecting the shape series. If you do not choose this series, you will burn money.
 
 ![image](images/select-shape.png)
 
-We can add a bash script to bootstrap the VM before we can access it. For now, we will not use it and manually run our init scripts.
+We can add a bash script to bootstrap the VM before we can access it. For now, we will skip it and manually run our init scripts.
 - Tags: Add helpful tags to document the workload.
 - Networking:
   - Virtual network: In the networking section, choose the virtual network we created earlier from the dropdown or create a new network if you have not created a VCN yet or did not want to create beforehand.
-  - Subnets: For subnet, choose the public subnet. It is not the best practice to run Kubernetes in a node with a public IP in a public subnet, but for testing and lab purposes, we will run it in a public subnet. In the next article, we will create the cluster entirely in a private subnet.
-  - Auto assign public IP: Yes
+  - Subnets: For the subnet, choose the **public subnet**. It is not the best practice to run Kubernetes in a node with a public IP in a public subnet, but for testing and lab purposes, we will run it in a public subnet. In the next article, we will create the cluster entirely in a private subnet.
+  - Auto-assign public IP: Yes
 - SSH keys: If you already have an SSH key pair, upload the public key. Otherwise, create an SSH key and download the key pair. Use the same key pair for all VMs for now.
 - Boot volume size: If we do not choose anything, Oracle will attach a 50GB volume, but if we were to specify, the minimum size will be 52GB. Therefore, leave it as it is. Make sure to read this doc before adding a block volume so that you stay under the free tier: https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
 
@@ -148,7 +149,7 @@ Host c1
     HostName  your-vms-public-ip-address
     Port 22 # ssh port
     User ubuntu # or custom username
-    IdentityFile ~/Downloads/ORACLE/keys/oracle-cloud.key # path to your ssh private key file
+    IdentityFile ~/Downloads/ORACLE/keys/oracle-cloud.key # path to your SSH private key file
     PubkeyAuthentication yes
 ```
 
