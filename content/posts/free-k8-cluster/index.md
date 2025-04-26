@@ -1,6 +1,6 @@
 +++
 date = '2025-04-22T00:41:02-05:00'
-draft = true
+draft = false
 title = 'Free Three Node Kubernetes cluster in Oracle Cloud'
 +++
 
