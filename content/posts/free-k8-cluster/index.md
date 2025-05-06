@@ -244,8 +244,7 @@ sudo systemctl status containerd
 
 Instead of running all these commands one by one, we will create a handy little script which we can pass as an init script while creating the VM. This script needs to be run on both master and worker nodes.
 
-You can find the full script over at the github repository.
---> github repo link here
+You can find the full script over at [this gist](https://gist.github.com/cg-manish/35cabee351d91288a5f895938287860b)
 
 Download the script from the github link and create a file named `init-vm.sh` in each of your VMs.
 Make it executable and run the script with sudo:
