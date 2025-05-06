@@ -23,7 +23,7 @@ I have been there and so have you. Let's create a 3-node Kubernetes cluster for 
 
 
 ## TLDR: 
-Create 3 Oracle Cloud virtual machines with ARM Ampere CPU. The always free tier covers 3,000 OCPU hours and 18,000 GB hours per month, essentially 4 vCPU and 24GB RAM running 24 hours for a month. 
+Create 3 Oracle Cloud virtual machines with ARM Ampere CPU. The always free tier covers 3,000 OCPU hours and 18,000 GB hours per month, essentially 4 vCPU and 24GB RAM running 24 hours a day for a month. 
 
 You can create a single VM or create 3 VMs: 1 Master node (2 vCPU + 12 GB Memory) and 2 worker nodes each with (1 vCPU and 6GB Memory). Create a cluster with kubeadm.
 
